@@ -35,7 +35,7 @@ var DataMiner = (function(){
 	//set price
 	(function(){
 		var element = document.getElementsByClassName('price')[0];
-		price = element.textContent;
+		price = parseInt(element.childNodes[0].data.replace(',', '').replace('$', ''));
 	}());
 
 	//set phone number
@@ -48,9 +48,9 @@ var DataMiner = (function(){
 	adID = document.getElementById('ad_id').textContent;
 
 	make = getSpec('Make');
-	year = getSpec('Year');
+	year = parseInt(getSpec('Year'));
 	model = getSpec('Model');
-	mileage = getSpec('Mileage');
+	mileage = parseInt(getSpec('Mileage').replace(',', ''));
 
 	return{
 		carDetails: {
