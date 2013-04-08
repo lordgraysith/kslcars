@@ -1,4 +1,6 @@
 var crawler
+, sentinel
+, createSentinel
 , createCrawler = function(eventManager){
     
     var jsdom = require("jsdom")
@@ -19,9 +21,20 @@ var crawler
     return {};
 };
 
+createSentinel = function(eventManager){
+    var listPages
+    , carPages
+    , addListPage
+    , addCarPage
+    , pageLoaded;
+};
+
 exports.initCrawler = function(eventManager){
     if(typeof crawler === 'undefined'){
         crawler = createCrawler(eventManager);
     }
-    return crawler;
+    if(typeof sentinel === 'undefined'){
+        sentinel = createSentinel(eventManager);
+    }
+    return {};
 };
