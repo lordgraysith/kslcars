@@ -8,7 +8,8 @@ var DataMiner = (function(){
 	, mileage
 	, adID
 	, specs
-	, getSpec;
+	, getSpec
+	, ready = false;
 
 	getSpec = function(specName){
 		var iter
@@ -30,38 +31,58 @@ var DataMiner = (function(){
 		return result;
 	};
 
-	specs = document.getElementById('specificationsTable').children[0];
+	init = function(){
+		specs = document.getElementById('specificationsTable').children[0];
 
-	//set price
-	(function(){
-		var element = document.getElementsByClassName('price')[0];
-		price = parseInt(element.childNodes[0].data.replace(',', '').replace('$', ''));
-	}());
+		//set price
+		(function(){
+			var element = document.getElementsByClassName('price')[0];
+			price = parseInt(element.childNodes[0].data.replace(',', '').replace('$', ''));
+		}());
 
-	//set phone number
-	(function(){
-		var phLink = document.getElementsByClassName('contactPhone')[0].children[0];
-		phoneNumber = phLink.childNodes[4].data.trim();
-	}());
+		//set phone number
+		(function(){
+			var phLink = document.getElementsByClassName('contactPhone')[0].children[0];
+			phoneNumber = phLink.childNodes[4].data.trim();
+		}());
 
-	url = document.location.href;
-	adID = document.getElementById('ad_id').textContent;
+		url = document.location.href;
+		adID = document.getElementById('ad_id').textContent;
 
-	make = getSpec('Make');
-	year = parseInt(getSpec('Year'));
-	model = getSpec('Model');
-	mileage = parseInt(getSpec('Mileage').replace(',', ''));
+		make = getSpec('Make');
+		year = parseInt(getSpec('Year'));
+		model = getSpec('Model');
+		mileage = parseInt(getSpec('Mileage').replace(',', ''));
+		
+		ready = true;
+	};
+
+	if(document.readyState === 'complete'){
+		init();
+	}
+	else {
+		document.onreadystatechange = function(){
+			if(document.readyState === 'complete'){
+				init();
+			}
+		};
+	}
 
 	return{
-		carDetails: {
-			price: price
-			, model: model
-			, make: make
-			, url: url
-			, phoneNumber: phoneNumber
-			, year: year
-			, mileage: mileage
-			, adID: adID
+		getCarDetails: function(){
+			if(!ready){
+				throw {message: 'Document not ready, change your strategy'};
+			}
+			return {
+				price: price
+				, model: model
+				, make: make
+				, url: url
+				, phoneNumber: phoneNumber
+				, year: year
+				, mileage: mileage
+				, adID: adID
+			};
 		}
 	};
 }());

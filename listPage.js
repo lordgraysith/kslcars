@@ -1,5 +1,6 @@
 var DataMiner = (function(){
 	var init
+	, ready = false
 	, carPages = []
 	, pageLists = [];
 
@@ -17,6 +18,7 @@ var DataMiner = (function(){
 				pageLists.push(pageListings[iter].href);
 			}
 		}
+		ready = true;
 	};
 
 	if(document.readyState === 'complete'){
@@ -31,11 +33,14 @@ var DataMiner = (function(){
 	}
 
 	return {
-		getCarPages: function(){
-			return carPages;
-		}
-		, getPageList: function(){
-			return pageLists;
+		getPages: function(){
+			if(!ready){
+				throw {message: 'Document not ready, change your strategy'};
+			}
+			return {
+				carPages: carPages
+				, pageLists: pageLists
+			};
 		}
 	};
 }());
