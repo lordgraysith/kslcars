@@ -152,7 +152,7 @@ createSentinel = function(eventManager){
 
         state = 'waiting';
         setTimeout(function() {
-            eventManager.emit('sentinel:addListPage', global.kslStart);
+            addListPage(global.kslStart);
         }, 15000);
     };
 
@@ -160,7 +160,7 @@ createSentinel = function(eventManager){
         state = off;
     };
 
-    gotAllAdIDs = function(adIds){
+    gotAllAdIDs = function(error, adIds){
         savedCarAds = adIds;
         initiating = false;
         if(state === 'waiting'){

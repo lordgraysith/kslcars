@@ -1,9 +1,15 @@
-var eventManager = require('./eventManager').getEventManager();
+var eventManager
+, iter;
 
 //setup global variables
 global.mongolabURI = process.env.MONGOLAB_URI || 'mongodb://localhost/kslcars';
 global.kslStart = process.env.KSL_START || 'http://www.ksl.com/auto/search/index';
 
-eventManager.emit('sentinel:addListPage', global.kslStart);
+eventManager = require('./eventManager').getEventManager();
+
+for(iter = 0; iter < 3549; iter++){
+	eventManager.emit('sentinel:addListPage', global.kslStart + '?page=' + iter);
+}
+
 //eventManager.emit('sentinel:addCarPage', 476005);
 eventManager.emit('sentinel:start');
