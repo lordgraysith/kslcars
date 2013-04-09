@@ -138,15 +138,16 @@ createSentinel = function(eventManager){
         //console.log('loadNext');
         var next;
         state = 'running';
-        next = listPages.pop();
-        if(typeof next !== 'undefined'){
-            eventManager.emit('crawler:loadListPage', next);
-            return;
-        }
 
         next = carPages.pop();
         if(typeof next !== 'undefined'){
             eventManager.emit('crawler:loadCarPage', next);
+            return;
+        }
+        
+        next = listPages.pop();
+        if(typeof next !== 'undefined'){
+            eventManager.emit('crawler:loadListPage', next);
             return;
         }
 
