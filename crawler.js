@@ -3,6 +3,7 @@ var crawler
 , createSentinel
 , jsdom = require("jsdom")
 , fs = require("fs")
+, savedCarAds = []
 , carPageScript = fs.readFileSync("./carPage.js").toString()
 , listPageScript = fs.readFileSync("./listPage.js").toString()
 , createCrawler = function(eventManager){
@@ -24,26 +25,38 @@ var crawler
         return "http://www.ksl.com/auto/listing/" + adID;
     };
 
-    carSaved = function(carDetails){
-        console.log('Saved car details: '+JSON.stringify(carDetails));
+    carSaved = function(error, carDetails){
+        savedCarAds.push(carDetails.adID.toString());
     };
 
     carPageLoaded = function(errors, window){
-        var carDetails = window.DataMiner.getCarDetails();
+        //console.log('carPageLoaded');
+        var carDetails;
+
+        if(!window.DataMiner){
+            console.log('failed to parse '+window.location.href);
+            eventManager.emit('sentinel:pageLoaded');
+            return;
+        }
+
+        carDetails = window.DataMiner.getCarDetails();
 
         eventManager.emit('data:saveCar', carDetails);
         eventManager.emit('sentinel:pageLoaded');
     };
 
     listPageLoaded = function(errors, window){
+        //console.log('listPageLoaded');
         var iter
         , carPages = window.DataMiner.getPages().carPages;
         for(iter = 0; iter < carPages.length; iter++){
             eventManager.emit('sentinel:addCarPage', parseAdID(carPages[iter]));
         }
+        eventManager.emit('sentinel:pageLoaded');
     };
 
     loadListPage = function(url){
+        console.log('loading '+url);
         jsdom.env({
             html: url
             , src: [listPageScript]
@@ -52,7 +65,12 @@ var crawler
     };
 
     loadCarPage = function(adID){
+        if(savedCarAds.indexOf(adID) > -1){
+            eventManager.emit('sentinel:pageLoaded');
+            return;
+        }
         var url = makeCarUrl(adID);
+        console.log('loading '+url);
         jsdom.env({
             html: url
             , src: [carPageScript]
@@ -78,36 +96,46 @@ createSentinel = function(eventManager){
     , added
     , start
     , stop
+    , gotAllAdIDs
+    , initiating
     , loadNext;
 
     addCarPage = function(adID){
+        //console.log(adID+ ' added');
         carPages.push(adID);
-        eventManager.emit('sentinel:added');
+        added();
     };
 
     addListPage = function(url){
+        //console.log(url+ ' added');
         listPages.push(url);
-        eventManager.emit('sentinel:added');
+        added();
     };
 
     added = function(){
+        //console.log('state is '+state);
         if(state === 'waiting'){
-            eventManager.emit('sentinel:loadNext');
+            loadNext();
         }
     };
 
     start = function(){
+        //console.log('sentinel started');
         state = 'waiting';
-        eventManager.emit('sentinel:loadNext');
+        if(!initiating){
+            loadNext();
+        }
     };
 
     pageLoaded = function(){
+        //console.log('pageLoaded');
         if(state !== 'off'){
-            eventManager.emit('sentinel:loadNext');
+            loadNext();
         }
     };
 
     loadNext = function(){
+        //console.log('loadNext');
         var next;
         state = 'running';
         next = listPages.pop();
@@ -123,20 +151,32 @@ createSentinel = function(eventManager){
         }
 
         state = 'waiting';
+        setTimeout(function() {
+            eventManager.emit('sentinel:addListPage', global.kslStart);
+        }, 15000);
     };
 
     stop = function(){
-        listPages = [];
-        carPages = [];
         state = off;
+    };
+
+    gotAllAdIDs = function(adIds){
+        savedCarAds = adIds;
+        initiating = false;
+        if(state === 'waiting'){
+            start();
+        }
     };
 
     eventManager.on('sentinel:addCarPage', addCarPage);
     eventManager.on('sentinel:addListPage', addListPage);
-    eventManager.on('sentinel:added', added);
     eventManager.on('sentinel:start', start);
-    eventManager.on('sentinel:loadNext', loadNext);
     eventManager.on('sentinel:stop', stop);
+    eventManager.on('sentinel:pageLoaded', pageLoaded);
+    eventManager.once('data:gotAllAdIDs', gotAllAdIDs);
+
+    initiating = true;
+    eventManager.emit('data:getAllAdIDs');
 };
 
 exports.initCrawler = function(eventManager){

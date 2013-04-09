@@ -32,7 +32,7 @@ var DataMiner = (function(){
 	};
 
 	init = function(){
-		specs = document.getElementById('specificationsTable').children[0];
+		specs = document.getElementById('specificationsTable');
 
 		//set price
 		(function(){
@@ -67,6 +67,8 @@ var DataMiner = (function(){
 			}
 		};
 	}
+
+	init();
 
 	return{
 		getCarDetails: function(){

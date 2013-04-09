@@ -1,8 +1,9 @@
 var dataService
-    , createDataService = function(eventManager){
+, createDataService = function(eventManager){
     
     var MongoClient = require('mongodb').MongoClient
-        , saveCar;
+    , saveCar
+    , getAllAdIDs;
 
     saveCar = function(carDetails){
         var exit;
@@ -25,7 +26,12 @@ var dataService
         });
     };
 
+    getAllAdIDs = function(){
+        eventManager.emit('data:gotAllAdIDs', []);//TODO: actually get these
+    };
+
     eventManager.on('data:saveCar', saveCar);
+    eventManager.on('data:getAllAdIDs', getAllAdIDs);
 
     return {};
 };

@@ -22,8 +22,9 @@ eventManager = (function(){
 	return new EventManager();
 }());
 
-crawler.initCrawler(eventManager);
+//the data service must be initiated before the crawler
 dataService.initDataService(eventManager);
+crawler.initCrawler(eventManager);
 
 exports.getEventManager = function(){
 	return eventManager;
