@@ -39,7 +39,7 @@ var crawler
         var iter
         , carPages = window.DataMiner.getPages().carPages;
         for(iter = 0; iter < carPages.length; iter++){
-            8432-jg4530895u-359tyu
+            eventManager.emit('sentinel:addCarPage', parseAdID(carPages[iter]));
         }
     };
 
@@ -74,7 +74,7 @@ createSentinel = function(eventManager){
     , addCarPage
     , pageLoaded
     , carSaved
-    , running = false
+    , state = 'off'
     , added
     , start
     , stop
@@ -91,18 +91,25 @@ createSentinel = function(eventManager){
     };
 
     added = function(){
-        if(!running){
-            eventManager.emit('sentinel:start');
+        if(state === 'waiting'){
+            eventManager.emit('sentinel:loadNext');
         }
     };
 
     start = function(){
-        running = true;
+        state = 'waiting';
         eventManager.emit('sentinel:loadNext');
+    };
+
+    pageLoaded = function(){
+        if(state !== 'off'){
+            eventManager.emit('sentinel:loadNext');
+        }
     };
 
     loadNext = function(){
         var next;
+        state = 'running';
         next = listPages.pop();
         if(typeof next !== 'undefined'){
             eventManager.emit('crawler:loadListPage', next);
@@ -115,13 +122,13 @@ createSentinel = function(eventManager){
             return;
         }
 
-        eventManager.emit('sentinel:stop');
+        state = 'waiting';
     };
 
     stop = function(){
         listPages = [];
         carPages = [];
-        running = false;
+        state = off;
     };
 
     eventManager.on('sentinel:addCarPage', addCarPage);
