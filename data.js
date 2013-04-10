@@ -1,37 +1,69 @@
 var dataService
 , createDataService = function(eventManager){
     
-    var MongoClient = require('mongodb').MongoClient
+    var mongoClient = require('mongodb').MongoClient
     , saveCar
-    , getAllAdIDs;
+    , getAllAdIDs
+    , exit;
+
+    exit = function(event, error, data, db){
+        if(db){
+            db.close();
+        }
+        eventManager.emit(event, error, data);
+    };
 
     saveCar = function(carDetails){
-        var exit;
-
-        exit = function(error, carDetails){
-            eventManager.emit('data:carSaved', error, carDetails);
-        };
-
-        MongoClient.connect(global.mongolabURI, function(error, db) {
+        mongoClient.connect(global.mongolabURI, function(error, db) {
             if(error){
-                exit(err, carDetails);
+                exit('data:carSaved', error, carDetails, db);
             }
             else
             {
                 var collection = db.collection('carDetails');
                 collection.save(carDetails, function() {
-                    exit(error, carDetails);
+                    exit('data:carSaved', error, carDetails, db);
+                });
+            }
+        });
+    };
+
+    getAllCars = function() {
+        mongoClient.connect(global.mongolabURI, function(error, db) {
+            if(error){
+                exit('data:gotAllCars', error, null, db);
+            }
+            else
+            {
+                var collection = db.collection('carDetails');
+                collection.find().toArray(function(error, items) {
+                    exit('data:gotAllCars', error, items, db);
                 });
             }
         });
     };
 
     getAllAdIDs = function(){
-        eventManager.emit('data:gotAllAdIDs', []);//TODO: actually get these
+        var gotAllCars;
+
+        gotAllCars = function(error, carDetails){
+            var result = []
+            , iter;
+
+            for(iter = 0; iter < carDetails.length; iter++){
+                result.push(carDetails[iter]["adID"]);
+            }
+
+            exit('data:gotAllAdIDs', error, result, null);
+        };
+
+        eventManager.once('data:gotAllCars', gotAllCars);
+        getAllCars();
     };
 
     eventManager.on('data:saveCar', saveCar);
     eventManager.on('data:getAllAdIDs', getAllAdIDs);
+    eventManager.on('data:getAllCars', getAllCars);
 
     return {};
 };

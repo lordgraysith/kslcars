@@ -138,21 +138,22 @@ createSentinel = function(eventManager){
         //console.log('loadNext');
         var next;
         state = 'running';
-        next = listPages.pop();
-        if(typeof next !== 'undefined'){
-            eventManager.emit('crawler:loadListPage', next);
-            return;
-        }
 
         next = carPages.pop();
         if(typeof next !== 'undefined'){
             eventManager.emit('crawler:loadCarPage', next);
             return;
         }
+        
+        next = listPages.pop();
+        if(typeof next !== 'undefined'){
+            eventManager.emit('crawler:loadListPage', next);
+            return;
+        }
 
         state = 'waiting';
         setTimeout(function() {
-            eventManager.emit('sentinel:addListPage', global.kslStart);
+            addListPage(global.kslStart);
         }, 15000);
     };
 
@@ -160,7 +161,7 @@ createSentinel = function(eventManager){
         state = off;
     };
 
-    gotAllAdIDs = function(adIds){
+    gotAllAdIDs = function(error, adIds){
         savedCarAds = adIds;
         initiating = false;
         if(state === 'waiting'){
