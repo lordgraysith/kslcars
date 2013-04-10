@@ -1,11 +1,12 @@
 var crawler
 , sentinel
 , createSentinel
-, jsdom = require("jsdom")
-, fs = require("fs")
+, jsdom = require('jsdom')
+, fs = require('fs')
+, http = require('http')
 , savedCarAds = []
-, carPageScript = fs.readFileSync("./carPage.js").toString()
-, listPageScript = fs.readFileSync("./listPage.js").toString()
+, carPageScript = fs.readFileSync('./carPage.js').toString()
+, listPageScript = fs.readFileSync('./listPage.js').toString()
 , createCrawler = function(eventManager){
     
     var jsdom = require("jsdom")
@@ -18,7 +19,7 @@ var crawler
     , makeCarUrl;
 
     parseAdID = function(url){
-        return url.match(/www\.ksl\.com\/auto\/listing\/([\d-]*)(.*)/i)[1];
+        return url.match(/\/auto\/listing\/([\d-]*)(.*)/i)[1];
     };
 
     makeCarUrl = function(adID){
@@ -45,22 +46,27 @@ var crawler
         eventManager.emit('sentinel:pageLoaded');
     };
 
-    listPageLoaded = function(errors, window){
-        //console.log('listPageLoaded');
-        var iter
-        , carPages = window.DataMiner.getPages().carPages;
+    listPageLoaded = function(carPages){
+        var iter;
         for(iter = 0; iter < carPages.length; iter++){
             eventManager.emit('sentinel:addCarPage', parseAdID(carPages[iter]));
+            //console.log(parseAdID(carPages[iter]));
         }
         eventManager.emit('sentinel:pageLoaded');
     };
 
     loadListPage = function(url){
         console.log('loading '+url);
-        jsdom.env({
-            html: url
-            , src: [listPageScript]
-            , done: listPageLoaded
+        http.get("http://www.ksl.com/auto/search/index", function(res) {
+            var data = '';
+            res.on('data', function (chunk) {
+                data = data + chunk;
+            });
+            res.on('end', function () {
+                listPageLoaded(data.match(/<div class="srp-listing-title">(.*)href="(.*)"(.*)<\/div>/gim));
+            });
+        }).on('error', function(e) {
+            console.log("Got error: " + e.message);
         });
     };
 
