@@ -164,7 +164,7 @@ createSentinel = function(eventManager){
     };
 
     stop = function(){
-        state = off;
+        state = 'off';
     };
 
     gotAllAdIDs = function(error, adIds){
