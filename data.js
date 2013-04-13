@@ -3,7 +3,7 @@ var dataService
     
     var mongoClient = require('mongodb').MongoClient
     , saveCar
-    , getAllAdIDs
+    , getAllAdIds
     , exit;
 
     exit = function(event, error, data, db){
@@ -43,7 +43,7 @@ var dataService
         });
     };
 
-    getAllAdIDs = function(){
+    getAllAdIds = function(){
         var gotAllCars;
 
         gotAllCars = function(error, carDetails){
@@ -51,10 +51,10 @@ var dataService
             , iter;
 
             for(iter = 0; iter < carDetails.length; iter++){
-                result.push(carDetails[iter]["adID"]);
+                result.push(carDetails[iter]["adId"]);
             }
 
-            exit('data:gotAllAdIDs', error, result, null);
+            exit('data:gotAllAdIds', error, result, null);
         };
 
         eventManager.once('data:gotAllCars', gotAllCars);
@@ -62,7 +62,7 @@ var dataService
     };
 
     eventManager.on('data:saveCar', saveCar);
-    eventManager.on('data:getAllAdIDs', getAllAdIDs);
+    eventManager.on('data:getAllAdIds', getAllAdIds);
     eventManager.on('data:getAllCars', getAllCars);
 
     return {};

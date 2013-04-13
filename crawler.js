@@ -1,12 +1,9 @@
 var crawler
 , sentinel
 , createSentinel
-, jsdom = require('jsdom')
-, fs = require('fs')
 , http = require('http')
 , savedCarAds = []
-, carPageScript = fs.readFileSync('./carPage.js').toString()
-, listPageScript = fs.readFileSync('./listPage.js').toString()
+, getDetail
 , createCrawler = function(eventManager){
     
     var jsdom = require("jsdom")
@@ -15,49 +12,94 @@ var crawler
     , carSaved
     , carPageLoaded
     , listPageLoaded
-    , parseAdID
-    , makeCarUrl;
+    , parseAdId
+    , getDetail
+    , getTelephone
+    , getZip
+    , makeCarUrl
+    , getAdId;
 
-    parseAdID = function(url){
+    parseAdId = function(url){
         return url.match(/\/auto\/listing\/([\d-]*)(.*)/i)[1];
     };
 
-    makeCarUrl = function(adID){
-        return "http://www.ksl.com/auto/listing/" + adID;
+    makeCarUrl = function(adId){
+        return "http://www.ksl.com/auto/listing/" + adId;
     };
 
     carSaved = function(error, carDetails){
-        savedCarAds.push(carDetails.adID.toString());
+        savedCarAds.push(carDetails.adId.toString());
     };
 
-    carPageLoaded = function(errors, window){
-        //console.log('carPageLoaded');
-        var carDetails;
+    getDetail = function(attribute, source){
+        var regex = new RegExp('<td>'+attribute+':<\/td>\\s*<td>(.*)<\/td>');
+        return source.match(regex)[1];
+    };
 
-        if(!window.DataMiner){
-            console.log('failed to parse '+window.location.href);
-            eventManager.emit('sentinel:pageLoaded');
-            return;
+    getTelephone = function(source){
+        var telephone;
+        try{
+            telephone = source.match(/"tel:(.*)"/)[1];
         }
+        catch(exception){}
+        return telephone;
+    };
 
-        carDetails = window.DataMiner.getCarDetails();
+    getZip = function(source){
+        var zip;
+        try{
+            zip = source.match(/class="address.*\s\w\w\s(\d{5})/)[1];
+        }
+        catch(exception){}
+        return zip;
+    };
 
-        eventManager.emit('data:saveCar', carDetails);
+    getPrice = function(source){
+        return parseInt(source.match(/class="price">(.*)<span/)[1].replace(',', '').replace('$', ''));
+    };
+
+    getAdId = function(source){
+        return source.match(/id="ad_id".*>(.*)<\/div/)[1];
+    };
+
+    carPageLoaded = function(errors, carPage){
+        //console.log('carPageLoaded');
+        var getCarDetails = function(){
+            var carDetails = {};
+            carDetails['make'] = getDetail('Make', carPage);
+            carDetails['model'] = getDetail('Model', carPage);
+            carDetails['year'] = parseInt(getDetail('Year', carPage));
+            carDetails['mileage'] = parseInt(getDetail('Mileage', carPage).replace(',', ''));
+            carDetails['transmission'] = getDetail('Transmission', carPage);
+            carDetails['telephone'] = getTelephone(carPage);
+            carDetails['price'] = getPrice(carPage);
+            carDetails['adId'] = getAdId(carPage);
+            carDetails['zip'] = getZip(carPage);
+            carDetails['titleType'] = getDetail('Title Type', carPage);
+            return carDetails;
+        }
+        
+        if(errors){
+            console.log('Error: '+errors.message);
+        }
+        else{
+            eventManager.emit('data:saveCar', getCarDetails());
+        }
         eventManager.emit('sentinel:pageLoaded');
     };
 
     listPageLoaded = function(carPages){
         var iter;
         for(iter = 0; iter < carPages.length; iter++){
-            eventManager.emit('sentinel:addCarPage', parseAdID(carPages[iter]));
-            //console.log(parseAdID(carPages[iter]));
+            eventManager.emit('sentinel:addCarPage', parseAdId(carPages[iter]));
+            //console.log(parseAdId(carPages[iter]));
         }
         eventManager.emit('sentinel:pageLoaded');
     };
 
     loadListPage = function(url){
         console.log('loading '+url);
-        http.get("http://www.ksl.com/auto/search/index", function(res) {
+        http.get(url, function(res) {
             var data = '';
             res.on('data', function (chunk) {
                 data = data + chunk;
@@ -77,10 +119,16 @@ var crawler
         }
         var url = makeCarUrl(adID);
         console.log('loading '+url);
-        jsdom.env({
-            html: url
-            , src: [carPageScript]
-            , done: carPageLoaded
+        http.get(url, function(res) {
+            var data = '';
+            res.on('data', function (chunk) {
+                data = data + chunk;
+            });
+            res.on('end', function () {
+                carPageLoaded(null, data);
+            });
+        }).on('error', function(e) {
+            carPageLoaded(e, null);
         });
     };
 
@@ -102,7 +150,7 @@ createSentinel = function(eventManager){
     , added
     , start
     , stop
-    , gotAllAdIDs
+    , gotAllAdIds
     , initiating
     , loadNext;
 
@@ -167,7 +215,7 @@ createSentinel = function(eventManager){
         state = 'off';
     };
 
-    gotAllAdIDs = function(error, adIds){
+    gotAllAdIds = function(error, adIds){
         savedCarAds = adIds;
         initiating = false;
         if(state === 'waiting'){
@@ -180,10 +228,10 @@ createSentinel = function(eventManager){
     eventManager.on('sentinel:start', start);
     eventManager.on('sentinel:stop', stop);
     eventManager.on('sentinel:pageLoaded', pageLoaded);
-    eventManager.once('data:gotAllAdIDs', gotAllAdIDs);
+    eventManager.once('data:gotAllAdIds', gotAllAdIds);
 
     initiating = true;
-    eventManager.emit('data:getAllAdIDs');
+    eventManager.emit('data:getAllAdIds');
 };
 
 exports.initCrawler = function(eventManager){
