@@ -16,7 +16,7 @@ eventManager = require('./eventManager').getEventManager();
 
 //eventManager.emit('sentinel:addCarPage', 476005);
 //eventManager.emit('sentinel:addListPage', global.kslStart);
-//eventManager.emit('sentinel:start');
+eventManager.emit('sentinel:start');
 
 app = express.createServer(express.logger());
 

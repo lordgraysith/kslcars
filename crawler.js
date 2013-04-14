@@ -15,6 +15,7 @@ var crawler
     , parseAdId
     , getDetail
     , getTelephone
+    , getLocation
     , getZip
     , makeCarUrl
     , getAdId;
@@ -39,7 +40,7 @@ var crawler
     getTelephone = function(source){
         var telephone;
         try{
-            telephone = source.match(/"tel:(.*)"/)[1];
+            telephone = source.match(/"tel:\s*(.*)"/)[1];
         }
         catch(exception){}
         return telephone;
@@ -52,6 +53,10 @@ var crawler
         }
         catch(exception){}
         return zip;
+    };
+
+    getLocation = function(source){
+        return source.match(/class="location">\s*(.*)\s\|/)[1];
     };
 
     getPrice = function(source){
@@ -76,6 +81,7 @@ var crawler
             carDetails['adId'] = getAdId(carPage);
             carDetails['zip'] = getZip(carPage);
             carDetails['titleType'] = getDetail('Title Type', carPage);
+            carDetails['location'] = getLocation(carPage);
             return carDetails;
         }
         
