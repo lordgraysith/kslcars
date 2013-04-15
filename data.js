@@ -4,6 +4,7 @@ var dataService
     var mongoClient = require('mongodb').MongoClient
     , saveCar
     , getAllAdIds
+    , getAllCars
     , exit;
 
     exit = function(event, error, data, db){
