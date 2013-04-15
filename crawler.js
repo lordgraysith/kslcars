@@ -6,8 +6,7 @@ var crawler
 , getDetail
 , createCrawler = function(eventManager){
     
-    var jsdom = require("jsdom")
-    , loadListPage
+    var loadListPage
     , loadCarPage
     , carSaved
     , carPageLoaded
