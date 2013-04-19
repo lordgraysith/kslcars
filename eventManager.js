@@ -1,6 +1,6 @@
 var events = require('events')
 	, util = require('util')
-	, dataService = require('./data')
+	, dataService = require('./'+global.dataService+'DataService')
 	, createEventManager
 	, eventManager
 	, init
