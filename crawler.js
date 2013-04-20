@@ -102,12 +102,21 @@ var crawler
     };
 
     listPageLoaded = function(carPages){
-        var iter;
-        for(iter = 0; iter < carPages.length; iter++){
-            eventManager.emit('sentinel:addCarPage', parseAdId(carPages[iter]));
-            //console.log(parseAdId(carPages[iter]));
-        }
-        eventManager.emit('sentinel:pageLoaded');
+        try {
+            var iter;
+
+            for(iter = 0; iter < carPages.length; iter++){
+                eventManager.emit('sentinel:addCarPage', parseAdId(carPages[iter]));
+            } 
+
+            eventManager.emit('sentinel:pageLoaded');
+        
+        }catch(err){
+            console.log("\n listPageLoaded Error: "+ err);
+            console.log("\n carPages: "+ JSON.stringify(carPages));
+            eventManager.emit('sentinel:pageLoaded');
+          }
+
     };
 
     loadListPage = function(url){
