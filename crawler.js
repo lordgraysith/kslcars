@@ -17,7 +17,8 @@ var crawler
     , getLocation
     , getZip
     , makeCarUrl
-    , getAdId;
+    , getAdId
+    , page = 1;
 
     parseAdId = function(url){
         return url.match(/\/auto\/listing\/([\d-]*)(.*)/i)[1];
@@ -74,31 +75,41 @@ var crawler
     };
 
     carPageLoaded = function(errors, carPage){
-        //console.log('carPageLoaded');
-        var getCarDetails = function(){
-            var carDetails = {};
-            carDetails['make'] = getDetail('Make', carPage);
-            carDetails['model'] = getDetail('Model', carPage);
-            carDetails['year'] = parseInt(getDetail('Year', carPage));
-            carDetails['mileage'] = parseInt(getDetail('Mileage', carPage).replace(',', ''));
-            carDetails['transmission'] = getDetail('Transmission', carPage);
-            carDetails['telephone'] = getTelephone(carPage);
-            carDetails['price'] = getPrice(carPage);
-            carDetails['adId'] = getAdId(carPage);
-            carDetails['zip'] = getZip(carPage);
-            carDetails['titleType'] = getDetail('Title Type', carPage);
-            carDetails['location'] = getLocation(carPage);
-            carDetails['postedDate'] = getPostedDate(carPage)
-            return carDetails;
-        }
         
-        if(errors){
-            console.log('Error: '+errors.message);
+        try {
+            
+            var getCarDetails = function(){
+                var carDetails = {};
+                carDetails['make'] = getDetail('Make', carPage);
+                carDetails['model'] = getDetail('Model', carPage);
+                carDetails['year'] = parseInt(getDetail('Year', carPage));
+                carDetails['mileage'] = parseInt(getDetail('Mileage', carPage).replace(',', ''));
+                carDetails['transmission'] = getDetail('Transmission', carPage);
+                carDetails['telephone'] = getTelephone(carPage);
+                carDetails['price'] = getPrice(carPage);
+                carDetails['adId'] = getAdId(carPage);
+                carDetails['zip'] = getZip(carPage);
+                carDetails['titleType'] = getDetail('Title Type', carPage);
+                carDetails['location'] = getLocation(carPage);
+                carDetails['postedDate'] = getPostedDate(carPage)
+                return carDetails;
+            }
+        
+            if(errors){
+                console.log('Error: '+errors.message);
+            }
+            else{
+                eventManager.emit('data:saveCar', getCarDetails());
+            }
+            eventManager.emit('sentinel:pageLoaded');
+        
+        }catch(err){
+            console.log("\n carPageLoaded Error: "+ err);
+
+            eventManager.emit('sentinel:pageLoaded');
         }
-        else{
-            eventManager.emit('data:saveCar', getCarDetails());
-        }
-        eventManager.emit('sentinel:pageLoaded');
+
+        
     };
 
     listPageLoaded = function(carPages){
@@ -114,13 +125,23 @@ var crawler
         }catch(err){
             console.log("\n listPageLoaded Error: "+ err);
             console.log("\n carPages: "+ JSON.stringify(carPages));
+            page = 1;
             eventManager.emit('sentinel:pageLoaded');
+
           }
 
     };
 
-    loadListPage = function(url){
-        console.log('loading '+url);
+    loadListPage = function(urlIn){
+
+
+        var url = urlIn +'&page=' + page
+        
+        if (global.runBackLog === 'true'){
+            page = page + 1;
+        }
+      
+        console.log('\n>>>> loading '+ url);
         http.get(url, function(res) {
             var data = '';
             res.on('data', function (chunk) {
@@ -140,7 +161,7 @@ var crawler
             return;
         }
         var url = makeCarUrl(adID);
-        console.log('loading '+url);
+        console.log('\n>>> loading '+url);
         http.get(url, function(res) {
             var data = '';
             res.on('data', function (chunk) {
@@ -230,7 +251,7 @@ createSentinel = function(eventManager){
         state = 'waiting';
         setTimeout(function() {
             addListPage(global.kslStart);
-        }, 1500);
+        }, 5000);
     };
 
     stop = function(){
