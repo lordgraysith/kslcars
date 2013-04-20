@@ -84,6 +84,7 @@ var dataService
        
 
         //gets cars
+        //
 		http.get(connectionString +'/v1/search?collection='+ collection +'&format=json&options='+collection+'&pageLength=4290000000', function(res) {
             var result = '';
             res.on('data', function (chunk) {
