@@ -58,6 +58,13 @@ var crawler
         return source.match(/class="location">\s*(.*)\s\|/)[1];
     };
 
+
+    getPostedDate = function(source){
+        var replaceAbleLocation = source.match(/class="location">\s*(.*)\s\|/)[0];
+        var postedDate = source.match(/class="location">\s*(.*)</)[0].replace(replaceAbleLocation, '').replace('<','').replace('Posted','').trim();
+        return postedDate;
+    };
+
     getPrice = function(source){
         return parseInt(source.match(/class="price">(.*)<span/)[1].replace(',', '').replace('$', ''));
     };
@@ -81,6 +88,7 @@ var crawler
             carDetails['zip'] = getZip(carPage);
             carDetails['titleType'] = getDetail('Title Type', carPage);
             carDetails['location'] = getLocation(carPage);
+            carDetails['postedDate'] = getPostedDate(carPage)
             return carDetails;
         }
         
@@ -213,7 +221,7 @@ createSentinel = function(eventManager){
         state = 'waiting';
         setTimeout(function() {
             addListPage(global.kslStart);
-        }, 15000);
+        }, 1500);
     };
 
     stop = function(){
