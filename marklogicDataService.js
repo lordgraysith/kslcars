@@ -14,7 +14,7 @@ var dataService
     };
 
     saveCar = function(carDetails){
-		console.log('\n >>>>>ML SaveCar');
+		
 		
         var uri = '/cars/car-' + carDetails["adId"] + '.json';
 
@@ -27,15 +27,14 @@ var dataService
 
 		var req =  http.request(options, function(res) {
             
-            console.log('\n >>>>>ML inSaveCar callback');    
-            console.log('uri: '+ uri);     
+            console.log('>> Marklogic Saveing Car');    
+            console.log('> uri: '+ uri);     
             var body = "";
             res.on('data', function (chunk) {
                 body = body + chunk;
                 
             }); 
             res.on('end', function () {
-                console.log('body: '+ body); 
                 exit('data:carSaved', res.error, carDetails);
             });
             
@@ -48,7 +47,6 @@ var dataService
     };
 
     getAllCars = function() {
-        console.log('\n >>>>>ML getAllCars');        
         
         //sets config
         var config = 
@@ -69,16 +67,15 @@ var dataService
 
         var req =  http.request(options, function(res) {
             
-            console.log('\n >>>>>ML SavingConfig callback');    
-            console.log('config: '+ JSON.stringify(config));     
+            console.log('\n>> MarkLogic Saving Rest Config');    
+            console.log('> config: '+ JSON.stringify(config));     
             var body = "";
             res.on('data', function (chunk) {
                 body = body + chunk;
                 
             }); 
             res.on('end', function () {
-                console.log('body: '+ body); 
-               
+                
             });
             
         });
@@ -93,7 +90,7 @@ var dataService
                 result = result + chunk;
             });
             res.on('end', function () {
-            	console.log('\n >>>>>ML gotAllCars');     
+            	console.log('\n > MarkLogic gotAllCars');     
                 exit('data:gotAllCars', null, result);
             });
         }).on('error', function(e) {
