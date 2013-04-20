@@ -18,7 +18,7 @@ var crawler
     , getZip
     , makeCarUrl
     , getAdId
-    , page = 9910;
+    , page = 1;
 
     parseAdId = function(url){
         return url.match(/\/auto\/listing\/([\d-]*)(.*)/i)[1];
