@@ -61,9 +61,47 @@ var crawler
 
 
     getPostedDate = function(source){
+        //gets the location so we can take it out
         var replaceAbleLocation = source.match(/class="location">\s*(.*)\s\|/)[0];
+        // takes out the location and cleanes up some other html stuff 
         var postedDate = source.match(/class="location">\s*(.*)</)[0].replace(replaceAbleLocation, '').replace('<','').replace('Posted','').trim();
-        return postedDate;
+        // turns months into numbers
+        postedDate = postedDate.toLowerCase();
+        postedDate = postedDate.replace("january", "01").replace("february", "02").replace("march", "03").replace("april", "04").replace("may", "05")
+                        .replace("june", "06").replace("july", "07").replace("august", "08").replace("september", "09").replace("october", "10")
+                        .replace("november", "11").replace("december", "12");
+        // formats the date
+        postedDate = postedDate.replace(/\s/g, "-").replace(",", "");
+        // checks to make sure we have a correct date
+        var dashCount = postedDate.match(/-/g);  
+
+
+        if (dashCount.length === 1){
+            postedDate = postedDate + "-" + new Date().getFullYear();
+        } else if (dashCount.length === 0){
+            postedDate = "01-01-" + postedDate;   
+        }
+       
+        var dateArray = postedDate.split("-");
+        
+        var finishDate = dateArray[2]+ "-" +dateArray[0]  + "-" + dateArray[1];
+        
+        //checks to see that crawler hasnt come passed the desided days
+        var postedDateObject =  new Date(dateArray[2], (parseInt(dateArray[0]) -1), dateArray[1])
+        var currentData = new Date();
+        var timeDiff = Math.abs(currentData.getTime() - postedDateObject.getTime());
+        var diffDays = (Math.ceil(timeDiff / (1000 * 3600 * 24)) - 1); 
+        
+        console.log('postedDate: '+finishDate); 
+        console.log('diffDays: '+diffDays);
+        
+        if (diffDays > global.daysBack){
+            console.log('Posted Date passed desided days. Rest crawler');
+            page = 1;
+            eventManager.emit('sentinel:pageLoaded');
+        }
+        
+        return finishDate;
     };
 
     getPrice = function(source){
@@ -251,7 +289,7 @@ createSentinel = function(eventManager){
         state = 'waiting';
         setTimeout(function() {
             addListPage(global.kslStart);
-        }, 5000);
+        }, 500);
     };
 
     stop = function(){

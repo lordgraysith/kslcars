@@ -84,13 +84,16 @@ var dataService
        
 
         //gets cars
+        //
+        console.log('\n>> MarkLogic getAllCars'); 
 		http.get(connectionString +'/v1/search?collection='+ collection +'&format=json&options='+collection+'&pageLength=4290000000', function(res) {
+             
             var result = '';
             res.on('data', function (chunk) {
                 result = result + chunk;
             });
             res.on('end', function () {
-            	console.log('\n > MarkLogic gotAllCars');     
+            	console.log('> MarkLogic gotAllCars');     
                 exit('data:gotAllCars', null, result);
             });
         }).on('error', function(e) {
