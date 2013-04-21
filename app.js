@@ -11,11 +11,12 @@ global.mongolabURI = process.env.MONGOLAB_URI || 'mongodb://localhost/kslcars';
 global.kslStart = process.env.KSL_START || 'http://www.ksl.com/auto/search/index?perPage=48';
 global.dataService = util.extractDataService();
 global.runBackLog = util.extractRunBackLog();
+global.daysBack = util.extractDaysBack();
 
 console.log('>>> dataService = ' + dataService);  
 console.log('>>> runBackLog = ' + runBackLog);  
+console.log('>>> daysBack = ' + daysBack);  
 console.log('>>> kslStart = ' + kslStart +'\n');  
-
 
 eventManager = require('./eventManager').getEventManager();
 

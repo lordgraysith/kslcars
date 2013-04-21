@@ -85,8 +85,22 @@ var crawler
         var dateArray = postedDate.split("-");
         
         var finishDate = dateArray[2]+ "-" +dateArray[0]  + "-" + dateArray[1];
-        console.log('postedDate: '+postedDate); 
-        console.log('finishDate: '+finishDate);
+        
+        //checks to see that crawler hasnt come passed the desided days
+        var postedDateObject =  new Date(dateArray[2], (parseInt(dateArray[0]) -1), dateArray[1])
+        var currentData = new Date();
+        var timeDiff = Math.abs(currentData.getTime() - postedDateObject.getTime());
+        var diffDays = (Math.ceil(timeDiff / (1000 * 3600 * 24)) - 1); 
+        
+        console.log('postedDate: '+finishDate); 
+        console.log('diffDays: '+diffDays);
+        
+        if (diffDays > global.daysBack){
+            console.log('Posted Date passed desided days. Rest crawler');
+            page = 1;
+            eventManager.emit('sentinel:pageLoaded');
+        }
+        
         return finishDate;
     };
 
@@ -275,7 +289,7 @@ createSentinel = function(eventManager){
         state = 'waiting';
         setTimeout(function() {
             addListPage(global.kslStart);
-        }, 5000);
+        }, 500);
     };
 
     stop = function(){
