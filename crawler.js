@@ -105,7 +105,7 @@ var crawler
     };
 
     getPrice = function(source){
-        return parseInt(source.match(/class="price">(.*)<span/)[1].replace(',', '').replace('$', ''));
+        return parseInt(source.match(/class="price.*?">(?:MSRP\s)?(.*?)<span/)[1].replace(',', '').replace('$', ''));
     };
 
     getAdId = function(source){
@@ -129,7 +129,7 @@ var crawler
                 carDetails['zip'] = getZip(carPage);
                 carDetails['titleType'] = getDetail('Title Type', carPage);
                 carDetails['location'] = getLocation(carPage);
-                carDetails['postedDate'] = getPostedDate(carPage)
+                carDetails['postedDate'] = getPostedDate(carPage);
                 return carDetails;
             }
         

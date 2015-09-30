@@ -1,5 +1,6 @@
 var eventManager
 , iter
+, path = require('path')
 , express = require('express')
 , util = require('./util')
 , app
@@ -34,6 +35,7 @@ app.configure(function(){
   app.use(express.cookieParser());
   app.use(express.bodyParser());
   app.use(express.favicon());
+  app.use(express.static(path.join(__dirname, 'public')));
 });
 
 app.get('/stop', function(req, res){
@@ -44,6 +46,13 @@ app.get('/stop', function(req, res){
 app.get('/start', function(req, res){
 	eventManager.emit('sentinel:start');
 	res.send('started');
+});
+
+app.get('/cars', function(req,res){
+	eventManager.once('data:gotAllCars', function(err, data){
+		res.send(data);
+	});
+	eventManager.emit('data:getAllCars');
 });
 
 app.listen(port, function() {
