@@ -24,7 +24,7 @@ let listings = [].slice.call(document.getElementsByClassName('listing'))
   }))
   .map(listing => {
     listing.link.href = listing.href
-    listing.link.innerText = `${listing.score} - ${listing[1]}`
+    listing.link.innerText = `${listing.score} - ${listing[1]} ${listing[2]}`
     return listing
   })
   .map(listing => {
